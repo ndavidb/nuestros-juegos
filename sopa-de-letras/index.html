@@ -1,0 +1,593 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Nuestra sopa de letras</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../estilos.css">
+  <style>
+    .encabezado { display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px; }
+    .encabezado h1 { font-size: clamp(28px, 7vw, 40px); }
+    .encabezado p { margin: 0; color: var(--muted); }
+
+    .juego { display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr); }
+    @media (min-width: 900px) {
+      .juego { grid-template-columns: minmax(0, 600px) minmax(0, 1fr); align-items: start; }
+      .lado { position: sticky; top: 16px; }
+    }
+
+    /* Barra de estado */
+    .barra {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 12px;
+    }
+    .dato {
+      display: flex; flex-direction: column;
+      padding: 8px 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      min-width: 76px;
+    }
+    .dato span { font-size: 12px; color: var(--muted); line-height: 1.2; }
+    .dato strong { font: 600 20px/1.2 var(--font-ui); font-variant-numeric: tabular-nums; }
+    .barra .boton { margin-left: auto; }
+
+    /* Tablero */
+    .tablero {
+      --n: 18;
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1;
+      container-type: inline-size;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+      cursor: pointer;
+      overflow: hidden;
+    }
+    .tablero .capa {
+      position: absolute;
+      inset: 6px;
+    }
+    .tablero svg { width: 100%; height: 100%; display: block; pointer-events: none; }
+    .letras {
+      display: grid;
+      grid-template-columns: repeat(var(--n), 1fr);
+      grid-template-rows: repeat(var(--n), 1fr);
+      pointer-events: none;
+    }
+    .letras span {
+      display: grid;
+      place-items: center;
+      font: 600 calc((100cqi - 12px) / var(--n) * .56)/1 var(--font-ui);
+      color: var(--text);
+    }
+    .letras span.destello { animation: destello 1.1s ease-in-out 3; color: var(--accent); }
+    @keyframes destello {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.6); }
+    }
+    .linea-sel { stroke: var(--accent); opacity: .3; }
+    .linea-mal { stroke: var(--error); opacity: .35; animation: desvanecer .5s ease forwards; }
+    @keyframes desvanecer { to { opacity: 0; } }
+    .ancla { fill: var(--accent); opacity: .3; }
+
+    /* Pistas */
+    .pistas-titulo { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; }
+    .pistas-titulo h2 { font-size: 22px; }
+    .pistas-titulo small { color: var(--muted); font-size: 14px; }
+    .pistas {
+      list-style: none; margin: 0; padding: 0;
+      display: grid; gap: 8px;
+    }
+    @media (min-width: 560px) and (max-width: 899px) {
+      .pistas { grid-template-columns: 1fr 1fr; }
+    }
+    .pista {
+      display: grid;
+      grid-template-columns: 12px 1fr auto;
+      gap: 10px;
+      align-items: start;
+      padding: 10px 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      transition: background .2s ease;
+    }
+    .pista .punto {
+      width: 12px; height: 12px; margin-top: 5px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+    }
+    .pista .texto { font-size: 15px; line-height: 1.35; }
+    .pista .respuesta {
+      display: block;
+      font: 600 17px/1.3 var(--font-display);
+      margin-top: 2px;
+    }
+    .pista .largo { font-size: 13px; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; padding-top: 1px; }
+    .pista.encontrada { background: var(--surface-2); }
+    .pista.encontrada .texto { color: var(--muted); }
+    .pista.encontrada .punto { border: 0; background: var(--color); }
+    .pista.nueva { animation: pop .45s ease; }
+    @keyframes pop { 40% { transform: scale(1.03); } }
+
+    .acciones { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+    .nota { color: var(--muted); font-size: 14px; margin: 12px 0 0; }
+
+    /* Final */
+    dialog {
+      border: 0;
+      padding: 0;
+      background: transparent;
+      max-width: min(440px, calc(100vw - 32px));
+      width: 100%;
+      color: var(--text);
+    }
+    dialog::backdrop { background: rgba(30, 10, 15, .55); }
+    .final {
+      position: relative;
+      background: var(--surface);
+      border-radius: 24px;
+      padding: 32px 24px 24px;
+      text-align: center;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+    .final .corazon { font-size: 44px; line-height: 1; color: var(--accent); }
+    .final h2 { font-size: clamp(26px, 7vw, 32px); margin: 12px 0 8px; }
+    .final p { margin: 0; color: var(--muted); }
+    .final .tiempo { font: 600 40px/1.1 var(--font-ui); color: var(--text); font-variant-numeric: tabular-nums; margin: 18px 0 2px; }
+    .final .acciones { justify-content: center; }
+    .lluvia { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+    .lluvia span {
+      position: absolute; top: -30px;
+      color: var(--accent);
+      animation: caer linear forwards;
+      opacity: .8;
+    }
+    @keyframes caer { to { transform: translateY(560px) rotate(40deg); opacity: 0; } }
+    @media (prefers-reduced-motion: reduce) {
+      .lluvia { display: none; }
+      .letras span.destello, .pista.nueva { animation: none; }
+    }
+
+    .aviso {
+      position: fixed; left: 50%; bottom: 24px;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--text); color: var(--bg);
+      padding: 10px 18px; border-radius: 999px;
+      font-size: 15px; opacity: 0; pointer-events: none;
+      transition: opacity .2s ease, transform .2s ease;
+      width: max-content;
+      max-width: calc(100vw - 32px);
+      text-align: center;
+      line-height: 1.35;
+    }
+    .aviso.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body>
+  <main class="contenedor">
+    <a class="volver" href="../">← Nuestros juegos</a>
+
+    <header class="encabezado" style="margin-top:14px">
+      <h1>Nuestra sopa de letras</h1>
+      <p>Lee cada pista, recuerda la respuesta y búscala. Desliza el dedo sobre la palabra o toca la primera letra y luego la última.</p>
+    </header>
+
+    <div class="juego">
+      <section aria-label="Tablero">
+        <div class="barra">
+          <div class="dato"><span>Tiempo</span><strong id="reloj">0:00</strong></div>
+          <div class="dato"><span>Encontradas</span><strong id="contador">0/16</strong></div>
+          <button class="boton" id="btn-pista" type="button" title="Muestra dónde empieza una palabra. Suma 20 segundos.">💡 Pista</button>
+        </div>
+        <div class="tablero" id="tablero">
+          <div class="capa"><svg id="trazos" aria-hidden="true"></svg></div>
+          <div class="capa letras" id="letras" aria-hidden="true"></div>
+        </div>
+      </section>
+
+      <aside class="lado">
+        <div class="pistas-titulo">
+          <h2>Pistas</h2>
+          <small>Números = letras de la respuesta</small>
+        </div>
+        <ul class="pistas" id="pistas"></ul>
+        <div class="acciones">
+          <button class="boton principal" id="btn-retar" type="button">Retar a mi pareja</button>
+          <button class="boton" id="btn-nueva" type="button">Nueva sopa</button>
+        </div>
+        <p class="nota">Los dos ven la misma sopa mientras usen el mismo enlace. Cada pista suma 20 segundos.</p>
+      </aside>
+    </div>
+  </main>
+
+  <dialog id="final">
+    <div class="final">
+      <div class="lluvia" id="lluvia"></div>
+      <div class="corazon" aria-hidden="true">♥</div>
+      <h2 id="mensaje-final"></h2>
+      <p>Encontraste las <span id="total-final"></span> palabras en</p>
+      <div class="tiempo" id="tiempo-final"></div>
+      <p id="detalle-final"></p>
+      <div class="acciones">
+        <button class="boton principal" id="btn-compartir" type="button">Enviar mi tiempo</button>
+        <button class="boton" id="btn-cerrar" type="button">Ver la sopa</button>
+      </div>
+    </div>
+  </dialog>
+
+  <div class="aviso" id="aviso" role="status"></div>
+
+  <script>
+  // =====================================================================
+  //  PARA EDITAR: las palabras, el mensaje final y el tamaño de la sopa.
+  //  Escribe la respuesta normal (con tildes y espacios); el juego la
+  //  convierte sola en letras mayúsculas sin tildes ni espacios.
+  // =====================================================================
+  const PALABRAS = [
+    { pista: "Primer beso", respuesta: "Carpita" },
+    { pista: "Ciudad visitada de forma inesperada", respuesta: "Armenia" },
+    { pista: "La ciudad más histórica, según David", respuesta: "París" },
+    { pista: "Materia de la universidad donde se conocieron", respuesta: "Renta variable" },
+    { pista: "Cantante favorita de David", respuesta: "Whitney Houston" },
+    { pista: "Las mejores termales", respuesta: "San Vicente" },
+    { pista: "La fiesta con la temática más random", respuesta: "Drag Queen" },
+    { pista: "El sitio favorito de Natalia", respuesta: "Cama" },
+    { pista: "La segunda parte del cuerpo de Natalia que más adora David", respuesta: "Cachetes" },
+    { pista: "Primera película que vieron juntos", respuesta: "Rápido y Furiosos" },
+    { pista: "Donde se dijeron «te quiero» por primera vez", respuesta: "Casa de Jhony" },
+    { pista: "Nuestra canción: «Can't Help…»", respuesta: "Falling in Love" },
+    { pista: "Serie que se maratonearon juntos", respuesta: "Todas" },
+    { pista: "Nombre de la mascota", respuesta: "Violenta" },
+    { pista: "Cantante favorita de Natalia", respuesta: "Taylor Swift" },
+    { pista: "El plan que salió mal pero hoy nos da risa", respuesta: "Scooter" },
+  ];
+  const MENSAJE_FINAL = "¡Eres el mejor de la relación!";
+  const TAMANO = 18;             // la sopa es de TAMANO x TAMANO letras
+  const SEMILLA_INICIAL = 1402;  // cámbiala para que la sopa por defecto sea otra
+  const SEGUNDOS_POR_PISTA = 20;
+  // =====================================================================
+
+  const COLORES = ["#e8798f", "#f0b45a", "#5fb8a8", "#6fa8dc", "#a98bd6", "#ee8f6b", "#8cc47a", "#e58fc4"];
+  const DIRECCIONES = [[0, 1], [1, 0], [1, 1], [-1, 1], [0, -1], [-1, 0], [-1, -1], [1, -1]];
+  const RELLENO = "AAAAAAAAAAAAEEEEEEEEEEEEOOOOOOOOOIIIIIIISSSSSSSRRRRRRNNNNNNLLLLLDDDDDTTTTTCCCCUUUUMMMPPPBBGGVVYQHFZJXKW";
+
+  function normalizar(s) {
+    return s.toUpperCase()
+      .replace(/Ñ/g, "\u0001")
+      .normalize("NFD").replace(/[̀-ͯ]/g, "")
+      .replace(/\u0001/g, "Ñ")
+      .replace(/[^A-ZÑ]/g, "");
+  }
+  const LISTA = PALABRAS.map(p => ({
+    ...p,
+    palabra: normalizar(p.respuesta),
+    largo: p.respuesta.split(/\s+/).map(w => normalizar(w).length).filter(Boolean).join(" · "),
+  }));
+
+  // ---------- Generador con semilla: misma semilla = misma sopa en ambos celulares ----------
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = a + 0x6D2B79F5 | 0;
+      let t = Math.imul(a ^ a >>> 15, 1 | a);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+
+  function generar(semilla) {
+    const azar = mulberry32(semilla);
+    const entero = n => Math.floor(azar() * n);
+    const orden = LISTA.map((_, i) => i).sort((a, b) => LISTA[b].palabra.length - LISTA[a].palabra.length);
+
+    for (let intento = 0; intento < 500; intento++) {
+      const g = Array.from({ length: TAMANO }, () => Array(TAMANO).fill(""));
+      const ubicaciones = [];
+      let ok = true;
+      const desfase = entero(8);
+      for (const [idx, i] of orden.entries()) {
+        const w = LISTA[i].palabra;
+        let puesto = false;
+        // Reparte las 8 direcciones entre las palabras para que haya diagonales y al revés
+        const preferida = DIRECCIONES[(desfase + idx) % 8];
+        for (let k = 0; k < 900 && !puesto; k++) {
+          const [dr, dc] = k < 500 ? preferida : DIRECCIONES[entero(8)];
+          const r = entero(TAMANO), c = entero(TAMANO);
+          const rf = r + dr * (w.length - 1), cf = c + dc * (w.length - 1);
+          if (rf < 0 || rf >= TAMANO || cf < 0 || cf >= TAMANO) continue;
+          let cabe = true, nuevas = 0;
+          for (let j = 0; j < w.length; j++) {
+            const ch = g[r + dr * j][c + dc * j];
+            if (ch && ch !== w[j]) { cabe = false; break; }
+            if (!ch) nuevas++;
+          }
+          if (!cabe || nuevas === 0) continue;
+          for (let j = 0; j < w.length; j++) g[r + dr * j][c + dc * j] = w[j];
+          ubicaciones[i] = { r, c, dr, dc, n: w.length };
+          puesto = true;
+        }
+        if (!puesto) { ok = false; break; }
+      }
+      if (!ok) continue;
+      for (let r = 0; r < TAMANO; r++)
+        for (let c = 0; c < TAMANO; c++)
+          if (!g[r][c]) g[r][c] = RELLENO[entero(RELLENO.length)];
+      return { g, ubicaciones };
+    }
+    throw new Error("No cupieron las palabras: aumenta TAMANO.");
+  }
+
+  // ---------- Estado ----------
+  const params = new URLSearchParams(location.search);
+  const semilla = parseInt(params.get("s"), 10) || SEMILLA_INICIAL;
+  const { g: sopa, ubicaciones } = generar(semilla);
+  const CLAVE = "sopa-v1-" + semilla;
+
+  function leer() {
+    try { const v = JSON.parse(localStorage.getItem(CLAVE)); if (v && v.encontradas) return v; } catch (e) {}
+    return null;
+  }
+  const estado = leer() || { encontradas: {}, orden: [], pistas: [], transcurrido: 0 };
+  let corriendo = false, t0 = 0, intervalo = null;
+
+  function tiempoMs() { return estado.transcurrido + (corriendo ? performance.now() - t0 : 0); }
+  function guardar() {
+    try { localStorage.setItem(CLAVE, JSON.stringify({ ...estado, transcurrido: tiempoMs() })); } catch (e) {}
+  }
+  function terminado() { return estado.orden.length === LISTA.length; }
+  function segundosTotales() { return Math.floor(tiempoMs() / 1000) + estado.pistas.length * SEGUNDOS_POR_PISTA; }
+  function formato(seg) { return Math.floor(seg / 60) + ":" + String(seg % 60).padStart(2, "0"); }
+
+  function iniciarReloj() {
+    if (corriendo || terminado()) return;
+    corriendo = true; t0 = performance.now();
+    intervalo = setInterval(() => { pintarReloj(); guardar(); }, 1000);
+  }
+  function detenerReloj() {
+    if (!corriendo) return;
+    estado.transcurrido = tiempoMs();
+    corriendo = false; clearInterval(intervalo);
+    guardar();
+  }
+  document.addEventListener("visibilitychange", () => { if (document.hidden) guardar(); });
+
+  // ---------- Dibujo ----------
+  const $ = id => document.getElementById(id);
+  const tablero = $("tablero"), letras = $("letras"), svg = $("trazos"), listaPistas = $("pistas");
+  const NS = "http://www.w3.org/2000/svg";
+  tablero.style.setProperty("--n", TAMANO);
+  svg.setAttribute("viewBox", `0 0 ${TAMANO} ${TAMANO}`);
+  const gEncontradas = document.createElementNS(NS, "g");
+  const gSeleccion = document.createElementNS(NS, "g");
+  svg.append(gEncontradas, gSeleccion);
+
+  const celdas = [];
+  for (let r = 0; r < TAMANO; r++) {
+    celdas.push([]);
+    for (let c = 0; c < TAMANO; c++) {
+      const s = document.createElement("span");
+      s.textContent = sopa[r][c];
+      letras.appendChild(s);
+      celdas[r].push(s);
+    }
+  }
+
+  function linea(t, clase, color) {
+    const l = document.createElementNS(NS, "line");
+    l.setAttribute("x1", t.c + .5); l.setAttribute("y1", t.r + .5);
+    l.setAttribute("x2", t.c + t.dc * (t.n - 1) + .5); l.setAttribute("y2", t.r + t.dr * (t.n - 1) + .5);
+    l.setAttribute("stroke-width", .78);
+    l.setAttribute("stroke-linecap", "round");
+    if (clase) l.setAttribute("class", clase);
+    if (color) { l.setAttribute("stroke", color); l.setAttribute("stroke-opacity", .5); }
+    return l;
+  }
+
+  const itemsPistas = LISTA.map((p, i) => {
+    const li = document.createElement("li");
+    li.className = "pista";
+    li.innerHTML = `<span class="punto"></span><span class="texto"></span><span class="largo"></span>`;
+    li.querySelector(".texto").textContent = p.pista;
+    listaPistas.appendChild(li);
+    return li;
+  });
+
+  function pintarPista(i) {
+    const li = itemsPistas[i], p = LISTA[i];
+    const largo = li.querySelector(".largo"), texto = li.querySelector(".texto");
+    const pos = estado.orden.indexOf(i);
+    if (pos >= 0) {
+      li.classList.add("encontrada");
+      li.style.setProperty("--color", COLORES[pos % COLORES.length]);
+      if (!texto.querySelector(".respuesta")) {
+        const b = document.createElement("span");
+        b.className = "respuesta";
+        b.textContent = p.respuesta;
+        texto.appendChild(b);
+      }
+      largo.textContent = "";
+    } else {
+      largo.textContent = (estado.pistas.includes(i) ? p.palabra[0] + "… " : "") + p.largo;
+    }
+  }
+
+  function pintarTodo() {
+    gEncontradas.replaceChildren();
+    estado.orden.forEach((i, pos) => gEncontradas.appendChild(linea(estado.encontradas[i], null, COLORES[pos % COLORES.length])));
+    LISTA.forEach((_, i) => pintarPista(i));
+    $("contador").textContent = `${estado.orden.length}/${LISTA.length}`;
+    $("btn-pista").disabled = terminado();
+    pintarReloj();
+  }
+  function pintarReloj() { $("reloj").textContent = formato(segundosTotales()); }
+
+  // ---------- Selección: deslizar, o tocar inicio y luego final ----------
+  let inicio = null, actual = null, arrastrando = false, ancla = null;
+
+  function celdaDe(e) {
+    const caja = letras.getBoundingClientRect();
+    const lim = v => Math.max(0, Math.min(TAMANO - 1, v));
+    return [lim(Math.floor((e.clientY - caja.top) / caja.height * TAMANO)),
+            lim(Math.floor((e.clientX - caja.left) / caja.width * TAMANO))];
+  }
+
+  function trazo(a, b) {
+    const dr = b[0] - a[0], dc = b[1] - a[1], adr = Math.abs(dr), adc = Math.abs(dc);
+    let sr, sc, n;
+    if (adc >= 2 * adr) { sr = 0; sc = Math.sign(dc); n = adc; }
+    else if (adr >= 2 * adc) { sr = Math.sign(dr); sc = 0; n = adr; }
+    else { sr = Math.sign(dr); sc = Math.sign(dc); n = Math.max(adr, adc); }
+    while (n > 0) {
+      const r = a[0] + sr * n, c = a[1] + sc * n;
+      if (r >= 0 && r < TAMANO && c >= 0 && c < TAMANO) break;
+      n--;
+    }
+    return { r: a[0], c: a[1], dr: sr, dc: sc, n: n + 1 };
+  }
+
+  function pintarSeleccion() {
+    gSeleccion.replaceChildren();
+    if (ancla && !arrastrando) {
+      const ci = document.createElementNS(NS, "circle");
+      ci.setAttribute("cx", ancla[1] + .5); ci.setAttribute("cy", ancla[0] + .5);
+      ci.setAttribute("r", .42); ci.setAttribute("class", "ancla");
+      gSeleccion.appendChild(ci);
+    }
+    if (arrastrando) gSeleccion.appendChild(linea(trazo(inicio, actual), "linea-sel"));
+  }
+
+  tablero.addEventListener("pointerdown", e => {
+    if (terminado()) return;
+    e.preventDefault();
+    tablero.setPointerCapture(e.pointerId);
+    iniciarReloj();
+    const cel = celdaDe(e);
+    inicio = ancla || cel;
+    actual = cel;
+    arrastrando = true;
+    pintarSeleccion();
+  });
+  tablero.addEventListener("pointermove", e => {
+    if (!arrastrando) return;
+    const cel = celdaDe(e);
+    if (cel[0] !== actual[0] || cel[1] !== actual[1]) { actual = cel; pintarSeleccion(); }
+  });
+  tablero.addEventListener("pointerup", () => {
+    if (!arrastrando) return;
+    arrastrando = false;
+    const t = trazo(inicio, actual);
+    if (t.n === 1) {
+      ancla = ancla ? null : inicio;   // tocar una letra la marca; tocarla otra vez la desmarca
+    } else {
+      ancla = null;
+      revisar(t);
+    }
+    pintarSeleccion();
+  });
+  tablero.addEventListener("pointercancel", () => { arrastrando = false; pintarSeleccion(); });
+
+  function revisar(t) {
+    let s = "";
+    for (let j = 0; j < t.n; j++) s += sopa[t.r + t.dr * j][t.c + t.dc * j];
+    const reves = [...s].reverse().join("");
+    const i = LISTA.findIndex((p, k) => !(k in estado.encontradas) && (p.palabra === s || p.palabra === reves));
+    if (i < 0) {
+      const l = linea(t, "linea-mal");
+      gEncontradas.appendChild(l);
+      setTimeout(() => l.remove(), 520);
+      return;
+    }
+    estado.encontradas[i] = t;
+    estado.orden.push(i);
+    if (navigator.vibrate) navigator.vibrate(30);
+    pintarTodo();
+    itemsPistas[i].classList.remove("nueva"); void itemsPistas[i].offsetWidth; itemsPistas[i].classList.add("nueva");
+    if (terminado()) { detenerReloj(); pintarTodo(); setTimeout(mostrarFinal, 450); }
+    guardar();
+  }
+
+  // ---------- Pista ----------
+  $("btn-pista").addEventListener("click", () => {
+    const faltan = LISTA.map((_, i) => i).filter(i => !(i in estado.encontradas));
+    if (!faltan.length) return;
+    const sinPista = faltan.filter(i => !estado.pistas.includes(i));
+    const i = (sinPista.length ? sinPista : faltan)[Math.floor(Math.random() * (sinPista.length || faltan.length))];
+    if (!estado.pistas.includes(i)) estado.pistas.push(i);
+    iniciarReloj();
+    const u = ubicaciones[i];
+    const cel = celdas[u.r][u.c];
+    cel.classList.remove("destello"); void cel.offsetWidth; cel.classList.add("destello");
+    setTimeout(() => cel.classList.remove("destello"), 3400);
+    itemsPistas[i].scrollIntoView({ block: "nearest", behavior: "smooth" });
+    avisar(`Pista: «${LISTA[i].pista}» empieza en la letra que parpadea (+${SEGUNDOS_POR_PISTA} s)`);
+    pintarTodo(); guardar();
+  });
+
+  // ---------- Final ----------
+  function mostrarFinal() {
+    $("mensaje-final").textContent = MENSAJE_FINAL;
+    $("total-final").textContent = LISTA.length;
+    $("tiempo-final").textContent = formato(segundosTotales());
+    const np = estado.pistas.length;
+    $("detalle-final").textContent = np ? `Con ${np} pista${np > 1 ? "s" : ""} (+${np * SEGUNDOS_POR_PISTA} s incluidos)` : "¡Sin usar pistas!";
+    const lluvia = $("lluvia");
+    lluvia.replaceChildren();
+    for (let k = 0; k < 26; k++) {
+      const s = document.createElement("span");
+      s.textContent = "♥";
+      s.style.left = Math.random() * 100 + "%";
+      s.style.fontSize = 12 + Math.random() * 18 + "px";
+      s.style.animationDuration = 2.2 + Math.random() * 2.5 + "s";
+      s.style.animationDelay = Math.random() * 1.5 + "s";
+      lluvia.appendChild(s);
+    }
+    const d = $("final");
+    if (d.showModal) d.showModal(); else d.setAttribute("open", "");
+  }
+  $("btn-cerrar").addEventListener("click", () => $("final").close());
+
+  // ---------- Compartir ----------
+  function enlace() { return location.origin + location.pathname + "?s=" + semilla; }
+  async function compartir(texto) {
+    const url = enlace();
+    try {
+      if (navigator.share) { await navigator.share({ text: texto, url }); return; }
+    } catch (e) { if (e.name === "AbortError") return; }
+    try { await navigator.clipboard.writeText(texto + " " + url); avisar("Copiado. Pégalo en el chat de tu pareja."); }
+    catch (e) { prompt("Copia este mensaje:", texto + " " + url); }
+  }
+  $("btn-retar").addEventListener("click", () =>
+    compartir("Te reto a nuestra sopa de letras 💕 Es la misma sopa para los dos: ¿quién termina primero?"));
+  $("btn-compartir").addEventListener("click", () =>
+    compartir(`Encontré las ${LISTA.length} palabras de nuestra sopa en ${formato(segundosTotales())}` +
+      (estado.pistas.length ? ` (con ${estado.pistas.length} pista${estado.pistas.length > 1 ? "s" : ""})` : " sin pistas") + " 💕 ¿Me ganas?"));
+  $("btn-nueva").addEventListener("click", () => {
+    if (estado.orden.length && !terminado() && !confirm("¿Empezar una sopa nueva? Perderás el avance de esta.")) return;
+    location.search = "?s=" + (1 + Math.floor(Math.random() * 999999));
+  });
+
+  let temporizadorAviso;
+  function avisar(txt) {
+    const a = $("aviso");
+    a.textContent = txt; a.classList.add("visible");
+    clearTimeout(temporizadorAviso);
+    temporizadorAviso = setTimeout(() => a.classList.remove("visible"), 3200);
+  }
+
+  pintarTodo();
+  if (terminado()) setTimeout(mostrarFinal, 300);
+  </script>
+</body>
+</html>

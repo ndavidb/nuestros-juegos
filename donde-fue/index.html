@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>¿Dónde fue?</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../estilos.css">
+  <style>
+    .contenedor { max-width: 560px; }
+    .arriba { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+    .puntos { font: 600 15px/1 var(--font-ui); color: var(--muted); font-variant-numeric: tabular-nums; }
+    .puntos strong { color: var(--text); }
+
+    .progreso { height: 6px; background: var(--surface-2); border-radius: 99px; overflow: hidden; margin-bottom: 18px; }
+    .progreso div { height: 100%; width: 0; background: var(--accent); border-radius: 99px; transition: width .35s ease; }
+
+    .pregunta { font-size: clamp(24px, 6.5vw, 30px); margin-bottom: 14px; }
+    .contador { font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); font-weight: 600; margin-bottom: 6px; }
+
+    .foto {
+      position: relative;
+      width: 100%;
+      height: min(46vh, 133vw);
+      height: min(46dvh, 133vw);
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: var(--surface-2);
+      box-shadow: var(--shadow);
+    }
+    .foto .fondo {
+      position: absolute; inset: -30px;
+      background-size: cover; background-position: center;
+      filter: blur(24px) brightness(.8);
+    }
+    .foto img {
+      position: relative;
+      width: 100%; height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    .opciones { display: grid; gap: 10px; margin: 18px 0 0; padding: 0; list-style: none; }
+    .opcion {
+      width: 100%;
+      appearance: none;
+      text-align: left;
+      font: 500 17px/1.3 var(--font-ui);
+      color: var(--text);
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      padding: 14px 16px;
+      cursor: pointer;
+      display: flex; align-items: center; gap: 12px;
+      transition: border-color .15s ease, background .15s ease, transform .1s ease;
+    }
+    .opcion:hover:not([disabled]) { border-color: var(--accent); }
+    .opcion:active:not([disabled]) { transform: scale(.98); }
+    .opcion:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .opcion .letra {
+      flex: none;
+      width: 30px; height: 30px; border-radius: 50%;
+      display: grid; place-items: center;
+      background: var(--surface-2); color: var(--muted);
+      font-size: 14px; font-weight: 600;
+    }
+    .opcion[disabled] { cursor: default; }
+    .opcion.bien { border-color: var(--success); background: color-mix(in srgb, var(--success) 14%, var(--surface)); }
+    .opcion.bien .letra { background: var(--success); color: #fff; }
+    .opcion.mal { border-color: var(--error); background: color-mix(in srgb, var(--error) 12%, var(--surface)); }
+    .opcion.mal .letra { background: var(--error); color: #fff; }
+    .opcion.apagada { opacity: .5; }
+
+    .resultado { min-height: 24px; margin: 14px 0 0; font-size: 16px; }
+    .resultado strong { font-family: var(--font-display); font-size: 19px; }
+    .siguiente { width: 100%; justify-content: center; margin-top: 14px; padding: 15px; font-size: 17px; }
+
+    /* Final */
+    .final { text-align: center; padding-top: 8px; }
+    .final .grande { font: 600 clamp(64px, 20vw, 92px)/1 var(--font-display); color: var(--accent); margin: 10px 0 4px; }
+    .final .grande small { font-size: .4em; color: var(--muted); }
+    .final h2 { font-size: clamp(24px, 6.5vw, 30px); margin: 10px 0 6px; }
+    .final p { color: var(--muted); margin: 0; }
+    .final .acciones { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 22px 0 26px; }
+    .repaso { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; text-align: left; }
+    .repaso li { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+    .repaso img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; }
+    .repaso div { padding: 8px 10px; font-size: 13px; line-height: 1.3; }
+    .repaso .marca { font-weight: 600; }
+    .repaso .marca.si { color: var(--success); }
+    .repaso .marca.no { color: var(--error); }
+
+    .aviso {
+      position: fixed; left: 50%; bottom: 24px;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--text); color: var(--bg);
+      padding: 10px 18px; border-radius: 999px;
+      font-size: 15px; opacity: 0; pointer-events: none;
+      transition: opacity .2s ease, transform .2s ease;
+      width: max-content; max-width: calc(100vw - 32px); text-align: center;
+    }
+    .aviso.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+  <main class="contenedor">
+    <div class="arriba">
+      <a class="volver" href="../">← Nuestros juegos</a>
+      <span class="puntos">Puntos: <strong id="puntos">0</strong></span>
+    </div>
+    <div class="progreso" aria-hidden="true"><div id="barra"></div></div>
+
+    <section id="juego">
+      <div class="contador" id="contador"></div>
+      <h1 class="pregunta" id="pregunta"></h1>
+      <div class="foto">
+        <div class="fondo" id="fondo"></div>
+        <img id="imagen" alt="">
+      </div>
+      <ul class="opciones" id="opciones"></ul>
+      <p class="resultado" id="resultado" aria-live="polite"></p>
+      <button class="boton principal siguiente" id="btn-siguiente" type="button" hidden>Siguiente →</button>
+    </section>
+
+    <section id="final" class="final" hidden>
+      <div class="contador">Resultado</div>
+      <div class="grande"><span id="final-puntos"></span><small id="final-total"></small></div>
+      <h2 id="final-mensaje"></h2>
+      <p>Abajo está el repaso con la respuesta de cada foto.</p>
+      <div class="acciones">
+        <button class="boton principal" id="btn-compartir" type="button">Enviar mi puntaje</button>
+        <button class="boton" id="btn-otra" type="button">Jugar otra vez</button>
+      </div>
+      <ul class="repaso" id="repaso"></ul>
+    </section>
+  </main>
+
+  <div class="aviso" id="aviso" role="status"></div>
+
+  <script>
+  // =====================================================================
+  //  PARA EDITAR: una entrada por foto. La PRIMERA opción es la correcta;
+  //  el juego las revuelve. "nota" (opcional) aparece después de responder.
+  // =====================================================================
+  const FOTOS = [
+    { foto: "01.jpg", opciones: ["Salento, Quindío", "Filandia, Quindío", "Circasia, Quindío"],
+      nota: "A un ratico de Armenia, la ciudad inesperada 😉" },
+    { foto: "02.jpg", opciones: ["Isla Paraíso, Cartagena", "Isla Grande, Cartagena", "Tierra Bomba, Cartagena"] },
+    { foto: "03.jpg", opciones: ["Chía, en las afueras de Bogotá", "Usaquén, Bogotá", "Zona T, Bogotá"] },
+    { foto: "04.jpg", opciones: ["Centro histórico de Santa Marta", "Getsemaní, Cartagena", "Centro histórico de Mompox"] },
+    { foto: "05.jpg", opciones: ["El Poblado, Medellín", "Laureles, Medellín", "Envigado, Antioquia"] },
+    { foto: "06.jpg", pregunta: "Esta tiene trampa: ¿dónde fue?",
+      opciones: ["Santorini paisa: sin pasaporte ni visa", "Santorini, Grecia: el original", "Mykonos, Grecia: el primo de Santorini"],
+      nota: "Grecia sin salir de Medellín. La de verdad sigue pendiente ✈️" },
+    { foto: "07.jpg", opciones: ["Universidad Nacional, Medellín", "Universidad de Antioquia, Medellín", "Universidad EAFIT, Medellín"],
+      nota: "Tapamos el diploma para no regalar la respuesta 🎓" },
+    { foto: "08.jpg", opciones: ["Puerta de Alcalá, Madrid", "Puerta de Toledo, Madrid", "Arco de la Victoria, Madrid"] },
+    { foto: "09.jpg", opciones: ["Arco del Triunfo, París", "Arco del Carrusel, París", "Gran Arco de La Défense, París"],
+      nota: "La ciudad más histórica, según David." },
+    { foto: "10.jpg", opciones: ["Palacio de Versalles", "Palacio de Fontainebleau", "Castillo de Chantilly"] },
+    { foto: "11.jpg", opciones: ["Phillip Island, Melbourne", "Kangaroo Island, Adelaide", "Rottnest Island, Perth"],
+      nota: "El nombre engaña: Kangaroo Island queda en Adelaide 🦘" },
+    { foto: "12.jpg", opciones: ["Monkey Forest de Ubud, Bali", "Templo de Uluwatu, Bali", "Bosque de Sangeh, Bali"] },
+    { foto: "13.jpg", opciones: ["Barossa Valley, Adelaide", "Yarra Valley, Melbourne", "Hunter Valley, Sídney"] },
+  ];
+  const PREGUNTA_NORMAL = "¿Dónde fue esta foto?";
+  // =====================================================================
+
+  const CLAVE = "donde-fue-v1";
+  const $ = id => document.getElementById(id);
+
+  // Orden de opciones revuelto, pero igual en los dos celulares
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = a + 0x6D2B79F5 | 0;
+      let t = Math.imul(a ^ a >>> 15, 1 | a);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+  const ORDENES = FOTOS.map((f, i) => {
+    const azar = mulberry32(7919 * (i + 1));
+    const idx = f.opciones.map((_, k) => k);
+    for (let k = idx.length - 1; k > 0; k--) { const j = Math.floor(azar() * (k + 1)); [idx[k], idx[j]] = [idx[j], idx[k]]; }
+    return idx;
+  });
+
+  function leer() {
+    try { const v = JSON.parse(localStorage.getItem(CLAVE)); if (v && Array.isArray(v.respuestas)) return v; } catch (e) {}
+    return null;
+  }
+  let estado = leer() || { respuestas: [] }; // respuestas[i] = índice de opción elegida (0 = correcta)
+  function guardar() { try { localStorage.setItem(CLAVE, JSON.stringify(estado)); } catch (e) {} }
+  const puntos = () => estado.respuestas.filter(r => r === 0).length;
+
+  let actual = 0;
+
+  function mostrarPregunta(i) {
+    actual = i;
+    const f = FOTOS[i];
+    $("contador").textContent = `Foto ${i + 1} de ${FOTOS.length}`;
+    $("pregunta").textContent = f.pregunta || PREGUNTA_NORMAL;
+    $("imagen").src = "fotos/" + f.foto;
+    $("fondo").style.backgroundImage = `url("fotos/${f.foto}")`;
+    $("resultado").textContent = "";
+    $("btn-siguiente").hidden = true;
+    const ul = $("opciones");
+    ul.replaceChildren();
+    ORDENES[i].forEach((k, pos) => {
+      const li = document.createElement("li");
+      const b = document.createElement("button");
+      b.className = "opcion"; b.type = "button"; b.dataset.k = k;
+      b.innerHTML = `<span class="letra">${"ABC"[pos]}</span><span></span>`;
+      b.lastChild.textContent = f.opciones[k];
+      b.addEventListener("click", () => responder(i, k));
+      li.appendChild(b); ul.appendChild(li);
+    });
+    if (FOTOS[i + 1]) new Image().src = "fotos/" + FOTOS[i + 1].foto; // precarga
+    pintarProgreso();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function responder(i, k) {
+    if (estado.respuestas[i] !== undefined) return;
+    estado.respuestas[i] = k;
+    guardar();
+    const f = FOTOS[i];
+    document.querySelectorAll(".opcion").forEach(b => {
+      const kb = +b.dataset.k;
+      b.disabled = true;
+      if (kb === 0) b.classList.add("bien");
+      else if (kb === k) b.classList.add("mal");
+      else b.classList.add("apagada");
+    });
+    const r = $("resultado");
+    r.replaceChildren();
+    const s = document.createElement("strong");
+    s.textContent = k === 0 ? "¡Correcto! " : "¡Nop! ";
+    r.appendChild(s);
+    r.append(k === 0 ? (f.nota || "") : `Fue en ${f.opciones[0]}. ${f.nota || ""}`);
+    if (navigator.vibrate) navigator.vibrate(k === 0 ? 30 : [40, 60, 40]);
+    const btn = $("btn-siguiente");
+    btn.textContent = i === FOTOS.length - 1 ? "Ver mi resultado →" : "Siguiente →";
+    btn.hidden = false;
+    btn.focus({ preventScroll: true });
+    btn.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    pintarProgreso();
+  }
+
+  function pintarProgreso() {
+    $("puntos").textContent = puntos();
+    $("barra").style.width = (estado.respuestas.filter(r => r !== undefined && r !== null).length / FOTOS.length * 100) + "%";
+  }
+
+  $("btn-siguiente").addEventListener("click", () => {
+    if (actual < FOTOS.length - 1) mostrarPregunta(actual + 1); else mostrarFinal();
+  });
+
+  function mensajeFinal(p, t) {
+    if (p === t) return "¡Perfecto! Te sabes nuestra historia de memoria 💕";
+    if (p >= t - 3) return "¡Casi perfecto! Se nota que estuviste ahí 😉";
+    if (p >= Math.ceil(t / 2)) return "Nada mal… pero toca repasar el álbum 📸";
+    return "¿Seguro que tú estuviste en esos viajes? 😅";
+  }
+
+  function mostrarFinal() {
+    $("juego").hidden = true;
+    $("final").hidden = false;
+    const p = puntos(), t = FOTOS.length;
+    $("final-puntos").textContent = p;
+    $("final-total").textContent = "/" + t;
+    $("final-mensaje").textContent = mensajeFinal(p, t);
+    const ul = $("repaso");
+    ul.replaceChildren();
+    FOTOS.forEach((f, i) => {
+      const li = document.createElement("li");
+      const ok = estado.respuestas[i] === 0;
+      li.innerHTML = `<img loading="lazy" alt=""><div><span class="marca ${ok ? "si" : "no"}">${ok ? "✓" : "✗"}</span> <span></span></div>`;
+      li.querySelector("img").src = "fotos/" + f.foto;
+      li.querySelector("div span:last-child").textContent = f.opciones[0];
+      ul.appendChild(li);
+    });
+    $("barra").style.width = "100%";
+    window.scrollTo({ top: 0 });
+  }
+
+  $("btn-otra").addEventListener("click", () => {
+    estado = { respuestas: [] }; guardar();
+    $("final").hidden = true; $("juego").hidden = false;
+    mostrarPregunta(0);
+  });
+
+  $("btn-compartir").addEventListener("click", async () => {
+    const texto = `Saqué ${puntos()}/${FOTOS.length} en «¿Dónde fue?» 📸 ¿Me ganas?`;
+    const url = location.origin + location.pathname;
+    try { if (navigator.share) { await navigator.share({ text: texto, url }); return; } }
+    catch (e) { if (e.name === "AbortError") return; }
+    try { await navigator.clipboard.writeText(texto + " " + url); avisar("Copiado. Pégalo en el chat de tu pareja."); }
+    catch (e) { prompt("Copia este mensaje:", texto + " " + url); }
+  });
+
+  let tAviso;
+  function avisar(txt) {
+    const a = $("aviso");
+    a.textContent = txt; a.classList.add("visible");
+    clearTimeout(tAviso); tAviso = setTimeout(() => a.classList.remove("visible"), 3000);
+  }
+
+  // Retomar donde quedó
+  const respondidas = estado.respuestas.length;
+  if (respondidas >= FOTOS.length) mostrarFinal();
+  else mostrarPregunta(respondidas);
+  </script>
+</body>
+</html>
