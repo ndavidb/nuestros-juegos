@@ -6,7 +6,7 @@
   <title>Nuestra sopa de letras</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../estilos.css">
   <style>
     .encabezado { display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px; }
@@ -143,7 +143,8 @@
       overflow: hidden;
       box-shadow: var(--shadow);
     }
-    .final .corazon { font-size: 44px; line-height: 1; color: var(--accent); }
+    .final .foto-final { position: relative; width: 150px; margin: -4px auto 4px; transform: rotate(-4deg); }
+    .final .foto-final figcaption { font-size: 22px; padding: 8px 4px 10px; }
     .final h2 { font-size: clamp(26px, 7vw, 32px); margin: 12px 0 8px; }
     .final p { margin: 0; color: var(--muted); }
     .final .tiempo { font: 600 40px/1.1 var(--font-ui); color: var(--text); font-variant-numeric: tabular-nums; margin: 18px 0 2px; }
@@ -181,6 +182,7 @@
     <a class="volver" href="../">← Nuestros juegos</a>
 
     <header class="encabezado" style="margin-top:14px">
+      <span class="cinta">6 años y 11 meses</span>
       <h1>Nuestra sopa de letras</h1>
       <p>Lee cada pista, recuerda la respuesta y búscala. Desliza el dedo sobre la palabra o toca la primera letra y luego la última.</p>
     </header>
@@ -216,7 +218,7 @@
   <dialog id="final">
     <div class="final">
       <div class="lluvia" id="lluvia"></div>
-      <div class="corazon" aria-hidden="true">♥</div>
+      <figure class="polaroid foto-final"><img src="../fotos/05.jpg" alt="David y Natalia sonriendo"><figcaption>te amo</figcaption></figure>
       <h2 id="mensaje-final"></h2>
       <p>Encontraste las <span id="total-final"></span> palabras en</p>
       <div class="tiempo" id="tiempo-final"></div>

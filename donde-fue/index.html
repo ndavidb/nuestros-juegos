@@ -6,7 +6,7 @@
   <title>¿Dónde fue?</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../estilos.css">
   <style>
     .contenedor { max-width: 560px; }
@@ -80,6 +80,9 @@
 
     /* Final */
     .final { text-align: center; padding-top: 8px; }
+    .final .foto-final { width: 170px; margin: 6px auto 22px; transform: rotate(3deg); }
+    .final .foto-final figcaption { font-size: 21px; }
+    .cinta-pregunta { display: block; margin-bottom: 4px; }
     .final .grande { font: 600 clamp(64px, 20vw, 92px)/1 var(--font-display); color: var(--accent); margin: 10px 0 4px; }
     .final .grande small { font-size: .4em; color: var(--muted); }
     .final h2 { font-size: clamp(24px, 6.5vw, 30px); margin: 10px 0 6px; }
@@ -115,6 +118,7 @@
     <div class="progreso" aria-hidden="true"><div id="barra"></div></div>
 
     <section id="juego">
+      <span class="cinta cinta-pregunta">6 años y 11 meses de fotos</span>
       <div class="contador" id="contador"></div>
       <h1 class="pregunta" id="pregunta"></h1>
       <div class="foto">
@@ -127,6 +131,7 @@
     </section>
 
     <section id="final" class="final" hidden>
+      <figure class="polaroid foto-final"><img src="../fotos/13.jpg" alt="Brindando juntos"><figcaption>por muchas fotos más</figcaption></figure>
       <div class="contador">Resultado</div>
       <div class="grande"><span id="final-puntos"></span><small id="final-total"></small></div>
       <h2 id="final-mensaje"></h2>
@@ -285,6 +290,7 @@
       ul.appendChild(li);
     });
     $("barra").style.width = "100%";
+    $("puntos").textContent = p;
     window.scrollTo({ top: 0 });
   }
 

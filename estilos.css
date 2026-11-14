@@ -1,54 +1,73 @@
-/* Estilos compartidos por todos los juegos */
+/* Estilos compartidos por todos los juegos — edición aniversario */
 :root {
-  --bg: #fbf6f1;
-  --surface: #ffffff;
-  --surface-2: #f5ece5;
-  --text: #2b1d1f;
-  --muted: #7a6466;
-  --accent: #c2415d;
+  --bg: #fcf3ee;
+  --bg-glow-1: #f9d9dd;
+  --bg-glow-2: #f6e4cf;
+  --surface: #fffaf7;
+  --surface-2: #f6e8e1;
+  --text: #3a1d25;
+  --muted: #86656b;
+  --accent: #b8325a;
   --accent-ink: #ffffff;
-  --accent-soft: #f7dfe5;
-  --border: #ecdcd3;
+  --accent-soft: #f8dbe2;
+  --gold: #b48a3c;
+  --border: #eed8cf;
   --error: #d24b3e;
   --success: #2e8a57;
-  --shadow: 0 1px 2px rgba(70, 25, 35, .05), 0 10px 30px rgba(70, 25, 35, .07);
-  --radius: 18px;
+  --paper: #ffffff;
+  --paper-ink: #4a2a31;
+  --shadow: 0 1px 2px rgba(80, 25, 40, .06), 0 12px 32px rgba(80, 25, 40, .09);
+  --shadow-photo: 0 2px 4px rgba(60, 20, 30, .12), 0 16px 36px rgba(60, 20, 30, .18);
+  --radius: 20px;
   --font-display: "Fraunces", Georgia, serif;
   --font-ui: "Outfit", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-script: "Caveat", "Segoe Print", cursive;
   color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #1b1315;
-    --surface: #251a1d;
-    --surface-2: #2f2226;
-    --text: #f6e9e6;
-    --muted: #b49c9f;
-    --accent: #f07a93;
+    --bg: #1a0e12;
+    --bg-glow-1: #3a1522;
+    --bg-glow-2: #2c1d14;
+    --surface: #25161b;
+    --surface-2: #311e24;
+    --text: #f8e9e6;
+    --muted: #bb9ca1;
+    --accent: #f2829f;
     --accent-ink: #2a0f16;
-    --accent-soft: #46232c;
-    --border: #3d2c30;
+    --accent-soft: #4a2230;
+    --gold: #e0bf7d;
+    --border: #3f2a30;
     --error: #ff7b6e;
     --success: #5cc98b;
-    --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 10px 30px rgba(0, 0, 0, .25);
+    --paper: #f7efe9;
+    --paper-ink: #4a2a31;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 12px 32px rgba(0, 0, 0, .3);
+    --shadow-photo: 0 2px 4px rgba(0, 0, 0, .4), 0 18px 40px rgba(0, 0, 0, .45);
     color-scheme: dark;
   }
 }
 
 :root[data-theme="dark"] {
-  --bg: #1b1315;
-  --surface: #251a1d;
-  --surface-2: #2f2226;
-  --text: #f6e9e6;
-  --muted: #b49c9f;
-  --accent: #f07a93;
+  --bg: #1a0e12;
+  --bg-glow-1: #3a1522;
+  --bg-glow-2: #2c1d14;
+  --surface: #25161b;
+  --surface-2: #311e24;
+  --text: #f8e9e6;
+  --muted: #bb9ca1;
+  --accent: #f2829f;
   --accent-ink: #2a0f16;
-  --accent-soft: #46232c;
-  --border: #3d2c30;
+  --accent-soft: #4a2230;
+  --gold: #e0bf7d;
+  --border: #3f2a30;
   --error: #ff7b6e;
   --success: #5cc98b;
-  --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 10px 30px rgba(0, 0, 0, .25);
+  --paper: #f7efe9;
+  --paper-ink: #4a2a31;
+  --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 12px 32px rgba(0, 0, 0, .3);
+  --shadow-photo: 0 2px 4px rgba(0, 0, 0, .4), 0 18px 40px rgba(0, 0, 0, .45);
   color-scheme: dark;
 }
 
@@ -58,12 +77,18 @@ html { -webkit-text-size-adjust: 100%; }
 
 body {
   margin: 0;
-  background: var(--bg);
+  min-height: 100vh;
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(60rem 40rem at 110% -10%, var(--bg-glow-1), transparent 60%),
+    radial-gradient(50rem 40rem at -20% 110%, var(--bg-glow-2), transparent 60%);
+  background-attachment: fixed;
   color: var(--text);
   font-family: var(--font-ui);
   font-size: 16px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
 
 a { color: var(--accent); }
@@ -71,7 +96,7 @@ a { color: var(--accent); }
 h1, h2, h3 {
   font-family: var(--font-display);
   font-weight: 600;
-  line-height: 1.15;
+  line-height: 1.12;
   margin: 0;
   letter-spacing: -.01em;
 }
@@ -81,6 +106,39 @@ h1, h2, h3 {
   max-width: 1040px;
   margin: 0 auto;
   padding: 24px 16px 48px;
+}
+
+/* Frase manuscrita con corazón: "6 años y 11 meses ♥" */
+.cinta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: 600 22px/1 var(--font-script);
+  color: var(--accent);
+}
+.cinta::after { content: "♥"; font-family: var(--font-ui); font-size: 14px; }
+
+/* Foto tipo polaroid */
+.polaroid {
+  margin: 0;
+  background: var(--paper);
+  padding: 8px 8px 0;
+  border-radius: 3px;
+  box-shadow: var(--shadow-photo);
+}
+.polaroid img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  object-position: 50% 30%;
+  border-radius: 1px;
+}
+.polaroid figcaption {
+  font: 600 20px/1 var(--font-script);
+  color: var(--paper-ink);
+  text-align: center;
+  padding: 10px 4px 12px;
 }
 
 .boton {
@@ -118,3 +176,11 @@ h1, h2, h3 {
   font-size: 15px;
 }
 .volver:hover { color: var(--accent); }
+
+.pie {
+  text-align: center;
+  color: var(--muted);
+  font: 600 22px/1.2 var(--font-script);
+  padding: 36px 16px 28px;
+}
+.pie span { color: var(--accent); font-family: var(--font-ui); font-size: 15px; }

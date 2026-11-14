@@ -6,90 +6,246 @@
   <title>Nuestros juegos</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="estilos.css">
   <style>
-    .portada { padding: 32px 0 28px; }
-    .portada p { color: var(--muted); margin: 10px 0 0; font-size: 17px; }
-    .portada h1 { font-size: clamp(34px, 8vw, 52px); }
-    .portada .nombres {
-      font: 500 14px/1 var(--font-ui);
-      letter-spacing: .14em;
-      text-transform: uppercase;
-      color: var(--accent);
-      margin-bottom: 12px;
+    /* ---------- Portada ---------- */
+    .hero {
+      position: relative;
+      isolation: isolate;
+      display: grid;
+      gap: 28px;
+      padding: 28px 0 40px;
+      align-items: center;
     }
+    @media (min-width: 880px) {
+      .hero { grid-template-columns: 1fr 1fr; gap: 40px; min-height: min(88vh, 760px); padding: 20px 0 48px; }
+    }
+    .nombres {
+      font: 500 13px/1 var(--font-ui);
+      letter-spacing: .22em;
+      text-transform: uppercase;
+      color: var(--muted);
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 18px;
+    }
+    .nombres::before, .nombres::after { content: ""; height: 1px; width: 28px; background: var(--gold); opacity: .7; }
+    .nombres i { font: italic 500 18px/1 var(--font-display); color: var(--accent); text-transform: none; letter-spacing: 0; }
+
+    .titulo {
+      font-weight: 500;
+      font-size: clamp(46px, 13vw, 92px);
+      line-height: .98;
+      letter-spacing: -.025em;
+    }
+    .titulo .num {
+      color: var(--accent);
+      font-weight: 600;
+      font-variant-numeric: lining-nums;
+    }
+    .titulo em { font-style: italic; font-weight: 400; color: var(--gold); }
+    .casi {
+      font: 600 clamp(26px, 6.5vw, 34px)/1.1 var(--font-script);
+      color: var(--accent);
+      margin: 14px 0 0;
+      transform: rotate(-2deg);
+      transform-origin: left;
+    }
+    .intro { color: var(--muted); font-size: 17px; max-width: 30em; margin: 18px 0 24px; }
+    .hero .boton.principal { padding: 14px 22px; font-size: 16px; }
+
+    /* Collage de polaroids */
+    .collage {
+      position: relative;
+      width: 100%;
+      max-width: 480px;
+      aspect-ratio: 5 / 7;
+      margin: 0 auto 30px;
+    }
+    .collage .polaroid {
+      position: absolute;
+      width: 49%;
+      transform: rotate(var(--r));
+      transition: transform .3s ease, z-index 0s;
+      animation: aparecer .8s cubic-bezier(.2, .8, .2, 1) backwards;
+      animation-delay: var(--d);
+    }
+    .collage .polaroid:hover { transform: rotate(0deg) scale(1.04); z-index: 5; }
+    .collage .polaroid::before {
+      /* cinta adhesiva */
+      content: "";
+      position: absolute;
+      top: -10px; left: 50%;
+      width: 64px; height: 22px;
+      transform: translateX(-50%) rotate(calc(var(--r) * -1.4));
+      background: color-mix(in srgb, var(--gold) 35%, transparent);
+      border-radius: 2px;
+    }
+    .collage .polaroid figcaption { font-size: clamp(16px, 4.6vw, 21px); }
+    .p1 { --r: -7deg; --d: .05s; left: 0; top: 0; z-index: 2; }
+    .p2 { --r: 6deg;  --d: .2s;  right: 0; top: 3%; z-index: 1; }
+    .p3 { --r: 4deg;  --d: .35s; left: 5%; top: 51%; z-index: 3; }
+    .p4 { --r: -5deg; --d: .5s;  right: 2%; top: 55%; z-index: 4; }
+    @keyframes aparecer {
+      from { opacity: 0; transform: translateY(24px) rotate(0deg) scale(.96); }
+      to   { opacity: 1; transform: rotate(var(--r)); }
+    }
+
+    /* Corazones flotando */
+    .corazones { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: -1; }
+    .corazones span {
+      position: absolute;
+      bottom: -20px;
+      color: var(--accent);
+      opacity: 0;
+      animation: flotar linear infinite;
+    }
+    @keyframes flotar {
+      0% { transform: translateY(0) rotate(0); opacity: 0; }
+      15% { opacity: .35; }
+      100% { transform: translateY(-110vh) rotate(25deg); opacity: 0; }
+    }
+
+    /* ---------- Juegos ---------- */
+    .seccion-titulo { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; margin: 12px 0 20px; }
+    .seccion-titulo h2 { font-size: clamp(30px, 7vw, 40px); }
+    .seccion-titulo .cinta { transform: rotate(-2deg); }
     .juegos {
       list-style: none;
       padding: 0;
       margin: 0;
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 16px;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 18px;
     }
     .tarjeta {
       display: flex;
       flex-direction: column;
-      gap: 8px;
       height: 100%;
-      padding: 22px;
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
       color: var(--text);
       text-decoration: none;
-      transition: transform .15s ease;
+      overflow: hidden;
+      transition: transform .2s ease, box-shadow .2s ease;
     }
-    a.tarjeta:hover { transform: translateY(-2px); }
-    .tarjeta .icono {
-      width: 48px; height: 48px;
-      border-radius: 14px;
-      display: grid; place-items: center;
-      background: var(--accent-soft);
-      color: var(--accent);
-      font: 600 20px/1 var(--font-display);
-      margin-bottom: 6px;
+    a.tarjeta:hover { transform: translateY(-4px); }
+    a.tarjeta:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+    .portada-juego { position: relative; aspect-ratio: 16 / 10; overflow: hidden; }
+    .portada-juego img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .5s ease; }
+    a.tarjeta:hover .portada-juego img { transform: scale(1.05); }
+    .portada-juego::after {
+      content: "";
+      position: absolute; inset: 0;
+      background: linear-gradient(to top, rgba(40, 10, 20, .55), transparent 55%);
     }
-    .tarjeta h2 { font-size: 22px; }
-    .tarjeta p { margin: 0; color: var(--muted); }
-    .tarjeta .ir { margin-top: auto; padding-top: 10px; color: var(--accent); font-weight: 500; }
-    .tarjeta.pronto { box-shadow: none; border-style: dashed; background: transparent; }
+    .etiqueta {
+      position: absolute; left: 14px; bottom: 12px; z-index: 1;
+      font: 600 13px/1 var(--font-ui);
+      letter-spacing: .08em; text-transform: uppercase;
+      color: #fff;
+      background: rgba(255, 255, 255, .18);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      padding: 7px 10px; border-radius: 999px;
+    }
+    .cuerpo { padding: 18px 20px 20px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+    .cuerpo h3 { font-size: 24px; }
+    .cuerpo p { margin: 0; color: var(--muted); }
+    .ir { margin-top: auto; padding-top: 12px; color: var(--accent); font-weight: 600; }
+
+    .tarjeta.pronto {
+      box-shadow: none; border-style: dashed; background: transparent;
+      align-items: center; justify-content: center; text-align: center;
+      padding: 32px 22px; min-height: 220px; gap: 6px;
+    }
+    .tarjeta.pronto .grande { font: 600 40px/1 var(--font-script); color: var(--gold); }
+    .tarjeta.pronto p { margin: 0; color: var(--muted); }
+
+    @media (prefers-reduced-motion: reduce) {
+      .collage .polaroid { animation: none; }
+      .corazones { display: none; }
+    }
   </style>
 </head>
 <body>
   <main class="contenedor">
-    <header class="portada">
-      <div class="nombres">David &amp; Natalia</div>
-      <h1>Nuestros juegos</h1>
-      <p>Juegos sobre nosotros, para jugar cada uno desde su celular.</p>
+    <header class="hero">
+      <div class="corazones" id="corazones" aria-hidden="true"></div>
+      <div>
+        <div class="nombres">David <i>&amp;</i> Natalia</div>
+        <h1 class="titulo"><span class="num">6</span> años<br><em>y</em> <span class="num">11</span> meses</h1>
+        <p class="casi">…y a un mes de los 7</p>
+        <p class="intro">Unos juegos para celebrar todo lo que hemos vivido juntos. Cada uno juega desde su celular, a ver quién se acuerda más de nosotros.</p>
+        <a class="boton principal" href="#juegos">Empezar a jugar ↓</a>
+      </div>
+
+      <div class="collage" aria-label="Fotos de nosotros">
+        <figure class="polaroid p1"><img src="fotos/09.jpg" alt="David y Natalia sonriendo frente a un arco de piedra"><figcaption>siempre tú</figcaption></figure>
+        <figure class="polaroid p2"><img src="fotos/13.jpg" alt="Brindando con vino rosado"><figcaption>¡salud por nosotros!</figcaption></figure>
+        <figure class="polaroid p3"><img src="fotos/04.jpg" alt="Selfie juntos bajo un árbol con bombillos"><figcaption>tú y yo</figcaption></figure>
+        <figure class="polaroid p4"><img src="fotos/02.jpg" alt="De noche bajo un kiosco rosado"><figcaption>otra aventura</figcaption></figure>
+      </div>
     </header>
 
-    <ul class="juegos">
-      <li>
-        <a class="tarjeta" href="sopa-de-letras/">
-          <span class="icono" aria-hidden="true">ABC</span>
-          <h2>Sopa de letras</h2>
-          <p>16 palabras de nuestra historia. Misma sopa para los dos: a ver quién termina primero.</p>
-          <span class="ir">Jugar →</span>
-        </a>
-      </li>
-      <li>
-        <a class="tarjeta" href="donde-fue/">
-          <span class="icono" aria-hidden="true">📸</span>
-          <h2>¿Dónde fue?</h2>
-          <p>13 fotos nuestras y tres opciones para cada una. Ojo, que algunas tienen trampa.</p>
-          <span class="ir">Jugar →</span>
-        </a>
-      </li>
-      <li>
-        <div class="tarjeta pronto">
-          <span class="icono" aria-hidden="true">?</span>
-          <h2>Próximo juego</h2>
-          <p>Muy pronto…</p>
-        </div>
-      </li>
-    </ul>
+    <section id="juegos">
+      <div class="seccion-titulo">
+        <h2>Juegos para celebrar</h2>
+        <span class="cinta">hechos con amor</span>
+      </div>
+      <ul class="juegos">
+        <li>
+          <a class="tarjeta" href="sopa-de-letras/">
+            <div class="portada-juego">
+              <img src="fotos/01.jpg" alt="" loading="lazy">
+              <span class="etiqueta">16 palabras</span>
+            </div>
+            <div class="cuerpo">
+              <h3>Sopa de letras</h3>
+              <p>Las palabras de nuestra historia escondidas en la sopa. Es la misma para los dos: a ver quién termina primero.</p>
+              <span class="ir">Jugar →</span>
+            </div>
+          </a>
+        </li>
+        <li>
+          <a class="tarjeta" href="donde-fue/">
+            <div class="portada-juego">
+              <img src="fotos/06.jpg" alt="" loading="lazy" style="object-position: 50% 55%">
+              <span class="etiqueta">13 fotos</span>
+            </div>
+            <div class="cuerpo">
+              <h3>¿Dónde fue?</h3>
+              <p>Nuestras fotos y tres opciones para cada una. Ojo, que algunas tienen trampa.</p>
+              <span class="ir">Jugar →</span>
+            </div>
+          </a>
+        </li>
+        <li>
+          <div class="tarjeta pronto">
+            <span class="grande">muy pronto…</span>
+            <p>Algo especial para los 7 años ✨</p>
+          </div>
+        </li>
+      </ul>
+    </section>
   </main>
+
+  <footer class="pie">Por muchos años más <span>♥</span></footer>
+
+  <script>
+    // Unos pocos corazones flotando en la portada
+    const caja = document.getElementById("corazones");
+    for (let i = 0; i < 12; i++) {
+      const s = document.createElement("span");
+      s.textContent = "♥";
+      s.style.left = Math.random() * 100 + "%";
+      s.style.fontSize = 10 + Math.random() * 16 + "px";
+      s.style.animationDuration = 9 + Math.random() * 10 + "s";
+      s.style.animationDelay = -Math.random() * 15 + "s";
+      caja.appendChild(s);
+    }
+  </script>
 </body>
 </html>
